@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: dungcony
+
+  profiles:
+    active: dev
+
+  mail:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:10MB}
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{logType:-SYSTEM}] [%X{reqId:-N/A}] [%thread] [%X{method:-} %X{path:-}] %logger{36} : %msg%n"
+  level:
+    root: info
+    com.dev.dungcony: info
+    org.springframework: warn
+    org.springframework.security: warn
+    org.springframework.data.redis.repository.config: off
+    org.hibernate: warn
+  file:
+    name: logs/app.log
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 100000
+  refresh-expiration: 604800
+
+server:
+  host: localhost
+  port: ${PORT:8080}
+  address: 0.0.0.0
+
+payos:
+  enabled: ${PAYOS_ENABLED:true}
+  client-id: ${PAYOS_CLIENT_ID:}
+  api-key: ${PAYOS_API_KEY:}
+  checksum-key: ${PAYOS_CHECKSUM_KEY:}
+  base-url: ${PAYOS_BASE_URL:}
+  return-url: ${PAYOS_RETURN_URL:}
+  cancel-url: ${PAYOS_CANCEL_URL:}
+  public-app-base-url: ${PUBLIC_APP_BASE_URL:}
+  expired-minutes: ${PAYOS_EXPIRED_MINUTES:15}
+
+order:
+  payment-timeout-scan-delay-ms: ${ORDER_PAYMENT_TIMEOUT_SCAN_DELAY_MS:60000}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+    withCredentials: true

@@ -1,0 +1,13 @@
+# Quy định line endings
+*.java text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.properties text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+
+# Binary files nên không convert
+*.png binary
+*.jpg binary
+*.jar binary
+*.class binary

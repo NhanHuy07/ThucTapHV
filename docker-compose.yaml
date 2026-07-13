@@ -1,0 +1,98 @@
+services:
+  # ===== Spring Boot App =====
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/dungcony}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-123456}
+
+      SPRING_DATA_REDIS_HOST: ${SPRING_DATA_REDIS_HOST:-redis}
+      SPRING_DATA_REDIS_PORT: ${SPRING_DATA_REDIS_PORT:-6379}
+      SPRING_DATA_REDIS_PASSWORD: ${SPRING_DATA_REDIS_PASSWORD:-}
+
+      JWT_SECRET: ${JWT_SECRET:-local-docker-jwt-secret-change-me-32chars}
+
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+
+      PAYOS_ENABLED: ${PAYOS_ENABLED:-false}
+      PAYOS_CLIENT_ID: ${PAYOS_CLIENT_ID:-}
+      PAYOS_API_KEY: ${PAYOS_API_KEY:-}
+      PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY:-}
+      PAYOS_BASE_URL: ${PAYOS_BASE_URL:-}
+      PAYOS_RETURN_URL: ${PAYOS_RETURN_URL:-}
+      PAYOS_CANCEL_URL: ${PAYOS_CANCEL_URL:-}
+      PAYOS_EXPIRED_MINUTES: ${PAYOS_EXPIRED_MINUTES:-15}
+      ORDER_PAYMENT_TIMEOUT_SCAN_DELAY_MS: ${ORDER_PAYMENT_TIMEOUT_SCAN_DELAY_MS:-60000}
+
+      CLOUDINARY_NAME: ${CLOUDINARY_NAME:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-dungcony}
+      CLOUDINARY_MAX_FILE_SIZE_BYTES: ${CLOUDINARY_MAX_FILE_SIZE_BYTES:-10485760}
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    volumes:
+      - app_logs:/app/logs
+
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: dungcony
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+      - ./src/main/resources/db/migration/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./src/main/resources/db/seed/rank_seed.sql:/docker-entrypoint-initdb.d/02_rank_seed.sql
+      - ./src/main/resources/db/seed/user_seed.sql:/docker-entrypoint-initdb.d/03_user_seed.sql
+      - ./src/main/resources/db/seed/user_seed_fix_rank.sql:/docker-entrypoint-initdb.d/04_user_seed_fix_rank.sql
+      - ./src/main/resources/db/seed/product_seed.sql:/docker-entrypoint-initdb.d/05_product_seed.sql
+      - ./src/main/resources/db/seed/item_seed.sql:/docker-entrypoint-initdb.d/06_item_seed.sql
+      - ./src/main/resources/db/seed/user_comment_seed.sql:/docker-entrypoint-initdb.d/07_user_comment_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dungcony"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local

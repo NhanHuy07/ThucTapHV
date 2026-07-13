@@ -1,0 +1,79 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      data-source-properties:
+        prepareThreshold: 0
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    from: ${MAIL_FROM}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    open-in-view: false
+
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      ssl:
+        enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: warn
+    com.dev.dungcony: info
+
+server:
+  forward-headers-strategy: framework
+
+# payOS: set PUBLIC_APP_BASE_URL or PAYOS_RETURN_URL/PAYOS_CANCEL_URL in production if needed.
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+
+jwt:
+  secret: ${JWT_SECRET}
+  refresh-cookie:
+    secure: true
+    path: /v1/api/public/auth
+
+app:
+  email:
+    sendgrid-api-key: ${SENDGRID_API_KEY:}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+  folder: ${CLOUDINARY_FOLDER:}
+  max-file-size-bytes: ${CLOUDINARY_MAX_FILE_SIZE_BYTES:}

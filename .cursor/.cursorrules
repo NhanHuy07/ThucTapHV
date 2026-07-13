@@ -1,0 +1,97 @@
+# Everything Claude Code - Cursor Rules
+# File: .cursorrules
+# This file configures Cursor IDE to follow ECC development practices
+
+## Core Principles
+- Agent-First: Delegate to specialized agents for domain tasks
+- Test-Driven: Write tests before implementation, 80%+ coverage required
+- Security-First: Never compromise on security; validate all inputs
+- Immutability: Always create new objects, never mutate existing ones
+- Plan Before Execute: Plan complex features before writing code
+
+## Development Workflow
+1. Plan First - Use planner agent to create implementation plan
+2. TDD Approach - Use tdd-guide agent, write tests first (RED → GREEN → REFACTOR)
+3. Code Review - Use code-reviewer agent immediately after writing code
+4. Commit & Push - Follow conventional commits format
+
+## Coding Standards
+- Immutability: ALWAYS create new objects, NEVER mutate existing ones
+- File Organization: Many small files (200-400 lines) over few large files
+- Error Handling: Handle errors at every level with user-friendly messages
+- Input Validation: Validate all user input at system boundaries
+- No Hardcoded Values: Use constants or configuration
+
+## Security Requirements
+- No hardcoded secrets (API keys, passwords, tokens)
+- All user inputs validated and sanitized
+- SQL injection prevention (parameterized queries)
+- XSS prevention (sanitized HTML)
+- CSRF protection enabled
+- Authentication/authorization verified
+- Rate limiting on all endpoints
+- Error messages don't leak sensitive data
+
+## Testing Requirements
+- Minimum coverage: 80%
+- Unit tests: Individual functions, utilities, components
+- Integration tests: API endpoints, database operations
+- E2E tests: Critical user flows
+- TDD workflow: RED (test fails) → GREEN (test passes) → REFACTOR
+
+## Git Workflow
+- Conventional commits: `<type>: <description>`
+- Types: feat, fix, refactor, docs, test, chore, perf, ci
+- PR workflow: Analyze full commit history → draft comprehensive summary
+
+## Architecture Patterns
+- API response format: Consistent envelope with success/data/error/pagination
+- Repository pattern: Encapsulate data access behind standard interface
+- Skeleton projects: Search for battle-tested templates, evaluate with agents
+
+## Performance
+- Avoid last 20% of context window for large refactoring
+- Use build-error-resolver agent for build failures
+- Monitor and optimize resource usage
+
+## Available Agents
+- planner: Implementation planning for complex features
+- architect: System design and scalability decisions
+- tdd-guide: Test-driven development workflow
+- code-reviewer: Code quality and maintainability review
+- security-reviewer: Vulnerability detection
+- build-error-resolver: Fix build/type errors
+- e2e-runner: End-to-end Playwright testing
+- refactor-cleaner: Dead code cleanup
+- doc-updater: Documentation updates
+- java-reviewer: Java and Spring Boot code review
+- database-reviewer: PostgreSQL/Supabase optimization
+- python-reviewer: Python code review
+- typescript-reviewer: TypeScript/JavaScript review
+
+## Language-Specific Rules
+When working with specific languages, also follow the corresponding rules:
+- TypeScript: .cursor/rules/typescript-*.md
+- Python: .cursor/rules/python-*.md
+- Go: .cursor/rules/golang-*.md
+- Swift: .cursor/rules/swift-*.md
+- PHP: .cursor/rules/php-*.md
+- Kotlin: .cursor/rules/kotlin-*.md
+
+## Skills Integration
+Use these skills when applicable:
+- api-design: REST API design patterns
+- backend-patterns: API design, database, caching for Node.js/Express/Next.js
+- frontend-patterns: React/Next.js state management, performance
+- security-review: Authentication, input validation, secrets management
+- tdd-workflow: Test-driven development with 80%+ coverage
+- documentation-lookup: Up-to-date docs via Context7 MCP
+- e2e-testing: Playwright E2E testing patterns
+- database-migrations: Migration patterns across frameworks
+
+## Success Metrics
+- All tests pass with 80%+ coverage
+- No security vulnerabilities
+- Code is readable and maintainable
+- Performance is acceptable
+- User requirements are met

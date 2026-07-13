@@ -1,0 +1,742 @@
+{
+  "$schema": "https://raw.githubusercontent.com/schemastore/schemastore/master/src/schemas/json/sarif-2.1.0-rtm.5.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "IntelliJ IDEA",
+          "version": "261.24374.151",
+          "informationUri": "https://www.jetbrains.com?utm_source=product&utm_medium=link&utm_campaign=IU&utm_content=2026.1",
+          "rules": [
+            {
+              "id": "JvmTaintAnalysis",
+              "name": "Taint analysis"
+            }
+          ],
+          "language": "en-US",
+          "contents": [
+            "localizedData",
+            "nonLocalizedData"
+          ],
+          "isComprehensive": false
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "workingDirectory": {
+            "uri": "file:///D:/me/TMDT/backend_tmdt/"
+          }
+        }
+      ],
+      "language": "en-US",
+      "results": [
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/notifications/controllers/admin/AdminNotiDeleteController.java"
+                },
+                "region": {
+                  "startLine": 41,
+                  "startColumn": 16,
+                  "endLine": 42,
+                  "endColumn": 73,
+                  "charOffset": 1543,
+                  "charLength": 92,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                .body(ApiRes.success(\"Delete \" + cnt + \" notification\"))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/users/controllers/user/UserUpdateController.java"
+                },
+                "region": {
+                  "startLine": 34,
+                  "startColumn": 16,
+                  "endLine": 35,
+                  "endColumn": 94,
+                  "charOffset": 1343,
+                  "charLength": 113,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                .body(ApiRes.success(\"updated\", userUpdate.updateUser(details.getId(), req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/admin/AdminProductController.java"
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 16,
+                  "endLine": 39,
+                  "endColumn": 116,
+                  "charOffset": 1461,
+                  "charLength": 135,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                .body(ApiRes.success(\"Update product successfully\", productUpdateService.update(productCode, req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/admin/AdminCategoryController.java"
+                },
+                "region": {
+                  "startLine": 24,
+                  "startColumn": 24,
+                  "endLine": 27,
+                  "endColumn": 85,
+                  "charOffset": 880,
+                  "charLength": 238,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\n                                                \"Add new product successfully\",\n                                                categoryCommandService.addNew(req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/store/CategoryController.java"
+                },
+                "region": {
+                  "startLine": 57,
+                  "startColumn": 24,
+                  "endLine": 60,
+                  "endColumn": 74,
+                  "charOffset": 2608,
+                  "charLength": 207,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\n                                                \"category\",\n                                                service.getByCode(code)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/store/ProductController.java"
+                },
+                "region": {
+                  "startLine": 61,
+                  "startColumn": 16,
+                  "endLine": 62,
+                  "endColumn": 90,
+                  "charOffset": 2343,
+                  "charLength": 109,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                .body(ApiRes.success(\"product\", productGetService.getDetailByCode(code)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/notifications/controllers/user/NotiUserCreateController.java"
+                },
+                "region": {
+                  "startLine": 31,
+                  "startColumn": 16,
+                  "endLine": 34,
+                  "endColumn": 19,
+                  "charOffset": 1428,
+                  "charLength": 188,
+                  "snippet": {
+                    "text": "ResponseEntity.status(HttpStatus.CREATED)\n                .body(ApiRes.success(\"\",\n                        notificationCreateService.userCreate(accId.getUserUuid(), req)\n                ))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/admin/AdminProviderController.java"
+                },
+                "region": {
+                  "startLine": 35,
+                  "startColumn": 24,
+                  "endLine": 38,
+                  "endColumn": 91,
+                  "charOffset": 1368,
+                  "charLength": 243,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\n                                                \"Update product successfully\",\n                                                providerCommandService.update(code, req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/admin/AdminProviderController.java"
+                },
+                "region": {
+                  "startLine": 26,
+                  "startColumn": 24,
+                  "endLine": 28,
+                  "endColumn": 85,
+                  "charOffset": 944,
+                  "charLength": 189,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\"Add new product successfully\",\n                                                providerCommandService.addNew(req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/store/ProviderController.java"
+                },
+                "region": {
+                  "startLine": 35,
+                  "startColumn": 24,
+                  "endLine": 38,
+                  "endColumn": 85,
+                  "charOffset": 1395,
+                  "charLength": 218,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\n                                                \"provider\",\n                                                providerGetService.getByName(name)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/admin/AdminItemController.java"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 16,
+                  "endLine": 38,
+                  "endColumn": 53,
+                  "charOffset": 1265,
+                  "charLength": 127,
+                  "snippet": {
+                    "text": "ResponseEntity.status(201).body(ApiRes.success(\n                \"created\",\n                itemCreateService.createItems(req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/promotion/controllers/AdminController.java"
+                },
+                "region": {
+                  "startLine": 47,
+                  "startColumn": 16,
+                  "endLine": 48,
+                  "endColumn": 102,
+                  "charOffset": 1598,
+                  "charLength": 121,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                .body(ApiRes.success(\"Promotion updated successfully\", promotionService.update(req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/promotion/controllers/PromotionController.java"
+                },
+                "region": {
+                  "startLine": 44,
+                  "startColumn": 24,
+                  "endLine": 45,
+                  "endColumn": 93,
+                  "charOffset": 2087,
+                  "charLength": 112,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\"Promotions for category\", promotions))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/store/ProviderController.java"
+                },
+                "region": {
+                  "startLine": 26,
+                  "startColumn": 24,
+                  "endLine": 29,
+                  "endColumn": 85,
+                  "charOffset": 993,
+                  "charLength": 218,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\n                                                \"provider\",\n                                                providerGetService.getByCode(code)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/auth/controllers/user/AuthController.java"
+                },
+                "region": {
+                  "startLine": 51,
+                  "startColumn": 16,
+                  "endLine": 52,
+                  "endColumn": 90,
+                  "charOffset": 2220,
+                  "charLength": 109,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                .body(ApiRes.success(\"refresh_success\", authService.refreshToken(token)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/promotion/controllers/PromotionController.java"
+                },
+                "region": {
+                  "startLine": 36,
+                  "startColumn": 24,
+                  "endLine": 37,
+                  "endColumn": 92,
+                  "charOffset": 1623,
+                  "charLength": 111,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\"Promotions for product\", promotions))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/store/CategoryController.java"
+                },
+                "region": {
+                  "startLine": 47,
+                  "startColumn": 24,
+                  "endLine": 50,
+                  "endColumn": 79,
+                  "charOffset": 2087,
+                  "charLength": 217,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\n                                                \"list category\",\n                                                service.getAllChildren(code)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/auth/controllers/admin/AccoutController.java"
+                },
+                "region": {
+                  "startLine": 25,
+                  "startColumn": 16,
+                  "endLine": 25,
+                  "endColumn": 151,
+                  "charOffset": 946,
+                  "charLength": 135,
+                  "snippet": {
+                    "text": "ResponseEntity.status(HttpStatus.CREATED).body(ApiRes.success(accountCreateService.createAdminAccount(req.username(), req.password())))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/admin/AdminItemController.java"
+                },
+                "region": {
+                  "startLine": 46,
+                  "startColumn": 16,
+                  "endLine": 48,
+                  "endColumn": 56,
+                  "charOffset": 1610,
+                  "charLength": 123,
+                  "snippet": {
+                    "text": "ResponseEntity.ok().body(ApiRes.success(\n                \"updated\",\n                itemUpdateService.updateQuantity(req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/promotion/controllers/AdminController.java"
+                },
+                "region": {
+                  "startLine": 40,
+                  "startColumn": 16,
+                  "endLine": 41,
+                  "endColumn": 89,
+                  "charOffset": 1318,
+                  "charLength": 130,
+                  "snippet": {
+                    "text": "ResponseEntity.status(HttpStatus.CREATED)\n                .body(ApiRes.success(\"add new promotion\", promotionService.addNew(req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/admin/AdminProductController.java"
+                },
+                "region": {
+                  "startLine": 29,
+                  "startColumn": 16,
+                  "endLine": 31,
+                  "endColumn": 56,
+                  "charOffset": 1110,
+                  "charLength": 144,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                .body(ApiRes.success(\"Add new product successfully\",\n                        productAddService.addNew(req)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/store/ItemController.java"
+                },
+                "region": {
+                  "startLine": 33,
+                  "startColumn": 16,
+                  "endLine": 36,
+                  "endColumn": 77,
+                  "charOffset": 1178,
+                  "charLength": 166,
+                  "snippet": {
+                    "text": "ResponseEntity.ok().body(\n                ApiRes.success(\n                        \"item\",\n                        service.getByProductCodeAndSize(productCode, size)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/notifications/controllers/user/NotiUserDeleteController.java"
+                },
+                "region": {
+                  "startLine": 43,
+                  "startColumn": 24,
+                  "endLine": 44,
+                  "endColumn": 89,
+                  "charOffset": 1914,
+                  "charLength": 108,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                                .body(ApiRes.success(\"Delete \" + cnt + \" notification\"))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/product/controllers/admin/AdminItemController.java"
+                },
+                "region": {
+                  "startLine": 55,
+                  "startColumn": 16,
+                  "endLine": 58,
+                  "endColumn": 57,
+                  "charOffset": 1929,
+                  "charLength": 152,
+                  "snippet": {
+                    "text": "ResponseEntity.ok()\n                .body(ApiRes.success(\n                        \"list items\",\n                        service.getByProductCode(code)))"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "JvmTaintAnalysis",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Uncontrolled user input is passed to Cross-Site Scripting (XSS) sink"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "..\\ile://D:/me/TMDT/backend_tmdt/src/main/java/com/dev/dungcony/modules/notifications/controllers/admin/AdminNotiCreateController.java"
+                },
+                "region": {
+                  "startLine": 32,
+                  "startColumn": 16,
+                  "endLine": 33,
+                  "endColumn": 82,
+                  "charOffset": 1333,
+                  "charLength": 123,
+                  "snippet": {
+                    "text": "ResponseEntity.status(HttpStatus.CREATED)\n                .body(ApiRes.success(notificationCreateService.adminCreate(req)))"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "newlineSequences": [
+        "\r\n",
+        "\n"
+      ]
+    }
+  ]
+}
