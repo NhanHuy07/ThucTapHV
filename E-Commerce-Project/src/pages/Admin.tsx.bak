@@ -1,0 +1,721 @@
+import { useContext, useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import Title from '../components/Title';
+import { ShopContext } from '../context/ShopContext';
+import { apiRequest } from '../lib/api';
+import { formatCurrency } from '../lib/format';
+import type { ApiResponse, OrderDetail, OrderStatus, OrderSummary, PageResponse, Product } from '../types/shop';
+
+type AdminTab = 'orders' | 'vouchers';
+type DiscountType = 'PERCENT' | 'FIXED';
+type VoucherType = 'NEWBIE' | 'GLOBAL';
+
+type VoucherForm = {
+    code: string;
+    discountType: DiscountType;
+    voucherType: VoucherType;
+    value: string;
+    minOrderAmount: string;
+    startAt: string;
+    endAt: string;
+};
+
+type UserVoucher = {
+    code: string;
+    type: DiscountType;
+    value: number;
+    minOrderAmount: number;
+    status: string;
+    endAt?: string;
+};
+
+const orderStatuses: OrderStatus[] = [
+    'UNPAID',
+    'PAID',
+    'PENDING',
+    'CANCELLED',
+    'CONFIRMED',
+    'SHIPPING',
+    'DELIVERED',
+    'COMPLETED',
+    'RETURNED',
+];
+
+const statusLabel: Record<OrderStatus, string> = {
+    UNPAID: 'Chưa thanh toán',
+    PAID: 'Đã thanh toán',
+    PENDING: 'Đang xử lý',
+    CANCELLED: 'Đã hủy',
+    CONFIRMED: 'Đã xác nhận',
+    SHIPPING: 'Đang giao',
+    DELIVERED: 'Đã giao',
+    COMPLETED: 'Hoàn tất',
+    RETURNED: 'Đã trả hàng',
+};
+
+const emptyVoucherForm: VoucherForm = {
+    code: '',
+    discountType: 'PERCENT',
+    voucherType: 'GLOBAL',
+    value: '',
+    minOrderAmount: '',
+    startAt: '',
+    endAt: '',
+};
+
+const formatDate = (date?: string) =>
+    date ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(date)) : 'Không có';
+
+const toInstant = (value: string) => (value ? new Date(value).toISOString() : undefined);
+
+const Admin = () => {
+    const context = useContext(ShopContext);
+    const token = context?.token as string;
+    const isAdmin = Boolean(context?.isAdmin);
+    const products = (context?.products || []) as Product[];
+
+    const [activeTab, setActiveTab] = useState<AdminTab>('orders');
+    const [orders, setOrders] = useState<OrderSummary[]>([]);
+    const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');
+    const [orderCode, setOrderCode] = useState('');
+    const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
+    const [loadingOrders, setLoadingOrders] = useState(false);
+    const [updatingOrder, setUpdatingOrder] = useState(false);
+
+    const [voucherForm, setVoucherForm] = useState<VoucherForm>(emptyVoucherForm);
+    const [voucherSearchMode, setVoucherSearchMode] = useState<'name' | 'id'>('name');
+    const [voucherSearchValue, setVoucherSearchValue] = useState('');
+    const [userVouchers, setUserVouchers] = useState<UserVoucher[]>([]);
+    const [loadingVouchers, setLoadingVouchers] = useState(false);
+    const [creatingVoucher, setCreatingVoucher] = useState(false);
+
+    const fetchOrders = async (status = orderStatusFilter) => {
+        if (!token) return;
+
+        setLoadingOrders(true);
+        try {
+            const endpoint = status === 'ALL'
+                ? '/v1/api/admin/order/get/all?page=0&size=20&sort=createdAt,desc'
+                : `/v1/api/admin/order/get/by-status?status=${encodeURIComponent(status)}&page=0&size=20&sort=createdAt,desc`;
+
+            const response = await apiRequest<ApiResponse<PageResponse<OrderSummary>>>(endpoint, {
+                method: 'GET',
+                token,
+            });
+
+            setOrders(response.data?.items || []);
+        } catch (error) {
+            console.error(error);
+            const message = error instanceof Error ? error.message : 'Không thể tải danh sách đơn hàng admin';
+            toast.error(message);
+        } finally {
+            setLoadingOrders(false);
+        }
+    };
+
+    useEffect(() => {
+        if (token) {
+            fetchOrders('ALL');
+        }
+    }, [token]);
+
+    const fetchOrderDetail = async (code?: string) => {
+        const targetCode = (code || orderCode).trim();
+        if (!targetCode) {
+            toast.error('Vui lòng nhập mã đơn hàng');
+            return;
+        }
+
+        setLoadingOrders(true);
+        try {
+            const response = await apiRequest<ApiResponse<OrderDetail>>(`/v1/api/admin/order/get/${encodeURIComponent(targetCode)}`, {
+                method: 'GET',
+                token,
+            });
+
+            setOrderDetail(response.data);
+            setOrderCode(response.data?.orderCode || targetCode);
+
+        } catch (error) {
+            console.error(error);
+            const message = error instanceof Error ? error.message : 'Không thể tải chi tiết đơn hàng';
+            toast.error(message);
+        } finally {
+            setLoadingOrders(false);
+        }
+    };
+
+    const updateOrderStatus = async (targetStatus: OrderStatus) => {
+        if (!orderDetail?.orderCode && !orderCode.trim()) {
+            toast.error('Chưa có mã đơn hàng để cập nhật');
+            return;
+        }
+
+        setUpdatingOrder(true);
+        const targetCode = orderDetail?.orderCode || orderCode.trim();
+        try {
+            // Trường hợp chuyển từ UNPAID sang CONFIRMED (bỏ qua PENDING trung gian)
+            if (orderDetail?.status === 'UNPAID' && targetStatus === 'CONFIRMED') {
+                toast.info('Đang xử lý thanh toán và phê duyệt đơn hàng...');
+                try {
+                    // Thử chuyển thẳng UNPAID -> CONFIRMED
+                    await apiRequest('/v1/api/admin/order/update/status', {
+                        method: 'PUT',
+                        token,
+                        body: {
+                            orderCode: targetCode,
+                            status: 'CONFIRMED',
+                        },
+                    });
+                } catch (err) {
+                    console.log('Không thể chuyển thẳng, đang tự động chuyển qua PENDING...', err);
+                    // Fallback: Chuyển UNPAID -> PENDING
+                    await apiRequest('/v1/api/admin/order/update/status', {
+                        method: 'PUT',
+                        token,
+                        body: {
+                            orderCode: targetCode,
+                            status: 'PENDING',
+                        },
+                    });
+                    // Sau đó chuyển PENDING -> CONFIRMED
+                    await apiRequest('/v1/api/admin/order/update/status', {
+                        method: 'PUT',
+                        token,
+                        body: {
+                            orderCode: targetCode,
+                            status: 'CONFIRMED',
+                        },
+                    });
+                }
+            } else {
+                // Các trường hợp chuyển đổi bình thường khác
+                await apiRequest('/v1/api/admin/order/update/status', {
+                    method: 'PUT',
+                    token,
+                    body: {
+                        orderCode: targetCode,
+                        status: targetStatus,
+                    },
+                });
+            }
+
+            toast.success(`Đã cập nhật đơn hàng thành: ${statusLabel[targetStatus]}`);
+            await fetchOrderDetail(targetCode);
+            await fetchOrders();
+        } catch (error) {
+            console.error(error);
+            const message = error instanceof Error ? error.message : 'Không thể cập nhật trạng thái đơn hàng';
+            toast.error(message);
+        } finally {
+            setUpdatingOrder(false);
+        }
+    };
+
+    const createVoucher = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!voucherForm.code || !voucherForm.value || !voucherForm.minOrderAmount) {
+            toast.error('Vui lòng nhập mã voucher, giá trị giảm và đơn tối thiểu');
+            return;
+        }
+
+        setCreatingVoucher(true);
+        try {
+            await apiRequest('/v1/api/admin/voucher/create', {
+                method: 'POST',
+                token,
+                body: {
+                    code: voucherForm.code.trim().toUpperCase(),
+                    discountType: voucherForm.discountType,
+                    voucherType: voucherForm.voucherType,
+                    value: Number(voucherForm.value),
+                    minOrderAmount: Number(voucherForm.minOrderAmount),
+                    startAt: toInstant(voucherForm.startAt),
+                    endAt: toInstant(voucherForm.endAt),
+                },
+            });
+
+            toast.success('Đã tạo voucher');
+            setVoucherForm(emptyVoucherForm);
+        } catch (error) {
+            console.error(error);
+            const message = error instanceof Error ? error.message : 'Không thể tạo voucher';
+            toast.error(message);
+        } finally {
+            setCreatingVoucher(false);
+        }
+    };
+
+    const searchUserVouchers = async () => {
+        if (!voucherSearchValue.trim()) {
+            toast.error('Vui lòng nhập thông tin tìm kiếm voucher user');
+            return;
+        }
+
+        setLoadingVouchers(true);
+        try {
+            const queryName = voucherSearchMode === 'name' ? 'name' : 'uid';
+            const endpoint = voucherSearchMode === 'name'
+                ? `/v1/api/admin/user-vouchers/get-by-name?${queryName}=${encodeURIComponent(voucherSearchValue.trim())}`
+                : `/v1/api/admin/user-vouchers/get-by-id?${queryName}=${encodeURIComponent(voucherSearchValue.trim())}`;
+
+            const response = await apiRequest<ApiResponse<UserVoucher[]>>(endpoint, {
+                method: 'GET',
+                token,
+            });
+
+            setUserVouchers(Array.isArray(response.data) ? response.data : []);
+        } catch (error) {
+            console.error(error);
+            const message = error instanceof Error ? error.message : 'Không thể tìm voucher của user';
+            toast.error(message);
+        } finally {
+            setLoadingVouchers(false);
+        }
+    };
+
+    if (!token) {
+        return <Navigate to='/login' replace />;
+    }
+
+    if (!isAdmin) {
+        return <Navigate to='/' replace />;
+    }
+
+    const receiver = orderDetail?.reciever || orderDetail?.receiver;
+    const receiverAddress = [
+        receiver?.addr?.detail,
+        receiver?.addr?.street,
+        receiver?.addr?.district,
+        receiver?.addr?.province,
+        receiver?.addr?.country,
+    ].filter(Boolean).join(', ');
+
+    return (
+        <div className='border-t pt-10 sm:pt-14 min-h-[80vh]'>
+            <div className='flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-8'>
+                <div>
+                    <div className='text-2xl'>
+                        <Title text1='QUẢN TRỊ' text2='HỆ THỐNG' />
+                    </div>
+                </div>
+
+                <div className='grid grid-cols-2 gap-2 border bg-white p-1'>
+                    <button
+                        type='button'
+                        onClick={() => setActiveTab('orders')}
+                        className={`px-5 py-2.5 text-sm font-medium transition-all ${activeTab === 'orders' ? 'bg-black text-white' : 'text-gray-500 hover:text-black'}`}
+                    >
+                        Đơn hàng
+                    </button>
+                    <button
+                        type='button'
+                        onClick={() => setActiveTab('vouchers')}
+                        className={`px-5 py-2.5 text-sm font-medium transition-all ${activeTab === 'vouchers' ? 'bg-black text-white' : 'text-gray-500 hover:text-black'}`}
+                    >
+                        Voucher
+                    </button>
+                </div>
+            </div>
+
+            {activeTab === 'orders' ? (
+                <div className='grid xl:grid-cols-[1.35fr_0.9fr] gap-8 items-start'>
+                    <div className='border bg-white p-5 sm:p-6 shadow-sm'>
+                        <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-100 pb-5'>
+                            <div>
+                                <p className='text-lg font-medium text-gray-900'>Giám sát đơn hàng</p>
+                                <p className='mt-1 text-sm text-gray-500'>Lọc danh sách theo trạng thái hoặc mở chi tiết từng mã đơn.</p>
+                            </div>
+
+                            <div className='flex gap-2'>
+                                <select
+                                    value={orderStatusFilter}
+                                    onChange={(event) => setOrderStatusFilter(event.target.value as OrderStatus | 'ALL')}
+                                    className='border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black'
+                                >
+                                    <option value='ALL'>Tất cả trạng thái</option>
+                                    {orderStatuses.map((status) => (
+                                        <option key={status} value={status}>{statusLabel[status]}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    type='button'
+                                    onClick={() => fetchOrders()}
+                                    disabled={loadingOrders}
+                                    className='bg-black px-5 py-2 text-sm text-white disabled:bg-gray-300'
+                                >
+                                    Tải đơn
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className='mt-5 overflow-x-auto'>
+                            <table className='w-full min-w-[720px] text-left text-sm'>
+                                <thead>
+                                    <tr className='border-b text-xs uppercase tracking-[0.16em] text-gray-400'>
+                                        <th className='py-3 font-medium'>Mã đơn</th>
+                                        <th className='py-3 font-medium'>Trạng thái</th>
+                                        <th className='py-3 font-medium'>Sản phẩm</th>
+                                        <th className='py-3 font-medium'>Tổng tiền</th>
+                                        <th className='py-3 font-medium'>Ngày tạo</th>
+                                        <th className='py-3 font-medium text-right'>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orders.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className='py-10 text-center text-gray-500'>
+                                                {loadingOrders ? 'Đang tải đơn hàng...' : 'Chưa có dữ liệu đơn hàng'}
+                                            </td>
+                                        </tr>
+                                    ) : orders.map((order) => (
+                                        <tr key={order.orderCode} className='border-b last:border-b-0'>
+                                            <td className='py-4 font-medium text-gray-900'>{order.orderCode}</td>
+                                            <td className='py-4'>
+                                                <span className={`px-3 py-1 text-xs ${order.status === 'CANCELLED' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
+                                                    {statusLabel[order.status]}
+                                                </span>
+                                            </td>
+                                            <td className='py-4 text-gray-600'>{order.totalItems}</td>
+                                            <td className='py-4 text-gray-900'>{formatCurrency(order.finalPrice)}</td>
+                                            <td className='py-4 text-gray-600'>{formatDate(order.createdAt)}</td>
+                                            <td className='py-4 text-right'>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => fetchOrderDetail(order.orderCode)}
+                                                    className='border border-black px-4 py-2 text-xs font-medium hover:bg-black hover:text-white transition-all'
+                                                >
+                                                    Chi tiết
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className='space-y-6'>
+                        <div className='border bg-white p-5 sm:p-6 shadow-sm'>
+                            <p className='text-lg font-medium text-gray-900'>Tra cứu mã đơn</p>
+                            <div className='mt-4 flex gap-2'>
+                                <input
+                                    value={orderCode}
+                                    onChange={(event) => setOrderCode(event.target.value)}
+                                    className='w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                                    placeholder='Nhập orderCode'
+                                />
+                                <button
+                                    type='button'
+                                    onClick={() => fetchOrderDetail()}
+                                    disabled={loadingOrders}
+                                    className='bg-black px-5 py-3 text-sm text-white disabled:bg-gray-300'
+                                >
+                                    Xem
+                                </button>
+                            </div>
+                        </div>
+
+                        {orderDetail && (
+                            <div className='border bg-white p-5 sm:p-6 shadow-sm'>
+                                <div className='flex items-start justify-between gap-4 border-b border-gray-100 pb-5'>
+                                    <div>
+                                        <p className='text-xs uppercase tracking-[0.16em] text-gray-400'>Mã đơn hàng</p>
+                                        <p className='mt-1 text-lg font-medium text-gray-900'>{orderDetail.orderCode}</p>
+                                        <p className='mt-1 text-sm text-gray-500'>{formatDate(orderDetail.createdAt)}</p>
+                                    </div>
+                                    <span className='bg-green-50 px-3 py-1 text-xs text-green-700'>{statusLabel[orderDetail.status]}</span>
+                                </div>
+
+                                <div className='mt-5 space-y-4 text-sm'>
+                                    <div>
+                                        <p className='text-xs uppercase tracking-[0.16em] text-gray-400'>Người nhận</p>
+                                        <p className='mt-1 font-medium text-gray-900'>{[receiver?.fName, receiver?.lName].filter(Boolean).join(' ') || 'Chưa có'}</p>
+                                        <p className='mt-1 text-gray-500'>{receiver?.phone || 'Chưa có số điện thoại'}</p>
+                                        <p className='mt-1 text-gray-500'>{receiverAddress || 'Chưa có địa chỉ'}</p>
+                                    </div>
+
+                                    <div className='border-t border-gray-100 pt-4'>
+                                        <p className='text-xs uppercase tracking-[0.16em] text-gray-400'>Sản phẩm</p>
+                                        <div className='mt-3 space-y-3'>
+                                            {(orderDetail.items || []).map((item) => {
+                                                const product = products.find((productItem) => productItem._id === item.productCode);
+                                                return (
+                                                    <div key={`${item.productCode}-${item.size}`} className='flex items-center justify-between gap-3'>
+                                                        <div>
+                                                            <p className='font-medium text-gray-900'>{product?.name || item.productCode}</p>
+                                                            <p className='text-gray-500'>Size {item.size} | SL {item.quantity}</p>
+                                                        </div>
+                                                        <p className='font-medium'>{formatCurrency(item.finalPrice ?? item.originalPrice)}</p>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div className='border-t border-gray-100 pt-4 space-y-2'>
+                                        <div className='flex justify-between'><span className='text-gray-500'>Tạm tính</span><span>{formatCurrency(orderDetail.totalAmount)}</span></div>
+                                        <div className='flex justify-between'><span className='text-gray-500'>Giảm giá</span><span>{formatCurrency(orderDetail.voucherDiscount)}</span></div>
+                                        <div className='flex justify-between font-medium text-gray-900'><span>Tổng cộng</span><span>{formatCurrency(orderDetail.finalPrice)}</span></div>
+                                    </div>
+
+                                    <div className='border-t border-gray-100 pt-4'>
+                                        <p className='text-xs uppercase tracking-[0.16em] text-gray-400 mb-3'>Thao tác xử lý đơn hàng</p>
+                                        <div className='flex flex-wrap gap-2'>
+                                            {/* ĐƠN ONLINE: UNPAID */}
+                                            {orderDetail.status === 'UNPAID' && (
+                                                <button
+                                                    type='button'
+                                                    onClick={() => updateOrderStatus('CONFIRMED')}
+                                                    disabled={updatingOrder}
+                                                    className='bg-black hover:bg-neutral-800 text-white px-5 py-3 text-xs uppercase tracking-wider font-semibold transition-all disabled:bg-gray-300'
+                                                >
+                                                    Xác nhận đã thanh toán & Phê duyệt
+                                                </button>
+                                            )}
+
+                                            {/* ĐƠN COD / CHỜ DUYỆT: PENDING */}
+                                            {orderDetail.status === 'PENDING' && (
+                                                <>
+                                                    <button
+                                                        type='button'
+                                                        onClick={() => updateOrderStatus('CONFIRMED')}
+                                                        disabled={updatingOrder}
+                                                        className='bg-black hover:bg-neutral-800 text-white px-5 py-3 text-xs uppercase tracking-wider font-semibold transition-all disabled:bg-gray-300'
+                                                    >
+                                                        Xác nhận đơn hàng
+                                                    </button>
+                                                    <button
+                                                        type='button'
+                                                        onClick={() => {
+                                                            if (window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) {
+                                                                updateOrderStatus('CANCELLED');
+                                                            }
+                                                        }}
+                                                        disabled={updatingOrder}
+                                                        className='border border-red-500 text-red-500 hover:bg-red-50 px-5 py-3 text-xs uppercase tracking-wider font-semibold transition-all disabled:border-gray-300 disabled:text-gray-300'
+                                                    >
+                                                        Hủy đơn
+                                                    </button>
+                                                </>
+                                            )}
+
+                                            {/* ĐƠN ĐÃ DUYỆT: CONFIRMED */}
+                                            {orderDetail.status === 'CONFIRMED' && (
+                                                <button
+                                                    type='button'
+                                                    onClick={() => updateOrderStatus('SHIPPING')}
+                                                    disabled={updatingOrder}
+                                                    className='bg-black hover:bg-neutral-800 text-white px-5 py-3 text-xs uppercase tracking-wider font-semibold transition-all disabled:bg-gray-300'
+                                                >
+                                                    Bắt đầu giao hàng
+                                                </button>
+                                            )}
+
+                                            {/* ĐƠN ĐANG GIAO: SHIPPING */}
+                                            {orderDetail.status === 'SHIPPING' && (
+                                                <>
+                                                    <button
+                                                        type='button'
+                                                        onClick={() => updateOrderStatus('DELIVERED')}
+                                                        disabled={updatingOrder}
+                                                        className='bg-green-600 hover:bg-green-700 text-white px-5 py-3 text-xs uppercase tracking-wider font-semibold transition-all disabled:bg-gray-300'
+                                                    >
+                                                        Giao thành công
+                                                    </button>
+                                                    <button
+                                                        type='button'
+                                                        onClick={() => {
+                                                            if (window.confirm("Đơn hàng này bị khách hàng trả lại?")) {
+                                                                updateOrderStatus('RETURNED');
+                                                            }
+                                                        }}
+                                                        disabled={updatingOrder}
+                                                        className='border border-orange-500 text-orange-500 hover:bg-orange-50 px-5 py-3 text-xs uppercase tracking-wider font-semibold transition-all disabled:bg-gray-300'
+                                                    >
+                                                        Khách hoàn trả
+                                                    </button>
+                                                </>
+                                            )}
+
+                                            {/* ĐƠN ĐÃ GIAO: DELIVERED */}
+                                            {orderDetail.status === 'DELIVERED' && (
+                                                <button
+                                                    type='button'
+                                                    onClick={() => {
+                                                        if (window.confirm("Xác nhận đơn hàng bị hoàn trả / trả hàng?")) {
+                                                            updateOrderStatus('RETURNED');
+                                                        }
+                                                    }}
+                                                    disabled={updatingOrder}
+                                                    className='bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 px-5 py-3 text-xs uppercase tracking-wider font-semibold transition-all disabled:bg-gray-300'
+                                                >
+                                                    Yêu cầu trả hàng (Hoàn đơn)
+                                                </button>
+                                            )}
+
+                                            {/* TRẠNG THÁI CUỐI (COMPLETED, CANCELLED, RETURNED, PAID) */}
+                                            {(['COMPLETED', 'CANCELLED', 'RETURNED', 'PAID'].includes(orderDetail.status)) && (
+                                                <div className='flex items-center gap-2 py-2 bg-gray-50 px-4 w-full border border-gray-100 rounded-sm'>
+                                                    <span className='w-2 h-2 rounded-full bg-gray-400 inline-block'></span>
+                                                    <span className='text-xs text-gray-500 font-medium uppercase tracking-wider'>
+                                                        Đơn hàng đã hoàn tất xử lý (Trạng thái kết thúc hoặc đã thanh toán)
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className='grid xl:grid-cols-[0.95fr_1.05fr] gap-8 items-start'>
+                    <form onSubmit={createVoucher} className='border bg-white p-5 sm:p-6 shadow-sm'>
+                        <div className='border-b border-gray-100 pb-5'>
+                            <p className='text-lg font-medium text-gray-900'>Tạo voucher</p>
+                            <p className='mt-1 text-sm text-gray-500'>Gửi dữ liệu tới `/v1/api/admin/voucher/create`.</p>
+                        </div>
+
+                        <div className='mt-5 grid gap-4 sm:grid-cols-2'>
+                            <input
+                                value={voucherForm.code}
+                                onChange={(event) => setVoucherForm((prev) => ({ ...prev, code: event.target.value }))}
+                                className='border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black sm:col-span-2'
+                                placeholder='Mã voucher, ví dụ SALE30'
+                            />
+                            <select
+                                value={voucherForm.discountType}
+                                onChange={(event) => setVoucherForm((prev) => ({ ...prev, discountType: event.target.value as DiscountType }))}
+                                className='border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                            >
+                                <option value='PERCENT'>Giảm theo phần trăm</option>
+                                <option value='FIXED'>Giảm số tiền cố định</option>
+                            </select>
+                            <select
+                                value={voucherForm.voucherType}
+                                onChange={(event) => setVoucherForm((prev) => ({ ...prev, voucherType: event.target.value as VoucherType }))}
+                                className='border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                            >
+                                <option value='GLOBAL'>Áp dụng toàn hệ thống</option>
+                                <option value='NEWBIE'>Khách hàng mới</option>
+                            </select>
+                            <input
+                                value={voucherForm.value}
+                                onChange={(event) => setVoucherForm((prev) => ({ ...prev, value: event.target.value }))}
+                                className='border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                                type='number'
+                                min={1}
+                                placeholder='Giá trị giảm'
+                            />
+                            <input
+                                value={voucherForm.minOrderAmount}
+                                onChange={(event) => setVoucherForm((prev) => ({ ...prev, minOrderAmount: event.target.value }))}
+                                className='border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                                type='number'
+                                min={0}
+                                placeholder='Đơn tối thiểu'
+                            />
+                            <div>
+                                <p className='mb-2 text-xs uppercase tracking-[0.16em] text-gray-400'>Bắt đầu</p>
+                                <input
+                                    value={voucherForm.startAt}
+                                    onChange={(event) => setVoucherForm((prev) => ({ ...prev, startAt: event.target.value }))}
+                                    className='w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                                    type='datetime-local'
+                                />
+                            </div>
+                            <div>
+                                <p className='mb-2 text-xs uppercase tracking-[0.16em] text-gray-400'>Kết thúc</p>
+                                <input
+                                    value={voucherForm.endAt}
+                                    onChange={(event) => setVoucherForm((prev) => ({ ...prev, endAt: event.target.value }))}
+                                    className='w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                                    type='datetime-local'
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type='submit'
+                            disabled={creatingVoucher}
+                            className='mt-6 w-full bg-black px-6 py-3 text-sm font-medium text-white disabled:bg-gray-300'
+                        >
+                            {creatingVoucher ? 'ĐANG TẠO...' : 'TẠO VOUCHER'}
+                        </button>
+                    </form>
+
+                    <div className='border bg-white p-5 sm:p-6 shadow-sm'>
+                        <div className='border-b border-gray-100 pb-5'>
+                            <p className='text-lg font-medium text-gray-900'>Tra cứu voucher của user</p>
+                            <p className='mt-1 text-sm text-gray-500'>Tìm theo tên user hoặc UUID user.</p>
+                        </div>
+
+                        <div className='mt-5 grid gap-3 sm:grid-cols-[160px_1fr_auto]'>
+                            <select
+                                value={voucherSearchMode}
+                                onChange={(event) => setVoucherSearchMode(event.target.value as 'name' | 'id')}
+                                className='border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                            >
+                                <option value='name'>Theo tên</option>
+                                <option value='id'>Theo UUID</option>
+                            </select>
+                            <input
+                                value={voucherSearchValue}
+                                onChange={(event) => setVoucherSearchValue(event.target.value)}
+                                className='border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black'
+                                placeholder={voucherSearchMode === 'name' ? 'Nhập tên user' : 'Nhập UUID user'}
+                            />
+                            <button
+                                type='button'
+                                onClick={searchUserVouchers}
+                                disabled={loadingVouchers}
+                                className='bg-black px-5 py-3 text-sm text-white disabled:bg-gray-300'
+                            >
+                                Tìm
+                            </button>
+                        </div>
+
+                        <div className='mt-6 overflow-x-auto'>
+                            <table className='w-full min-w-[620px] text-left text-sm'>
+                                <thead>
+                                    <tr className='border-b text-xs uppercase tracking-[0.16em] text-gray-400'>
+                                        <th className='py-3 font-medium'>Mã</th>
+                                        <th className='py-3 font-medium'>Loại</th>
+                                        <th className='py-3 font-medium'>Giá trị</th>
+                                        <th className='py-3 font-medium'>Đơn tối thiểu</th>
+                                        <th className='py-3 font-medium'>Trạng thái</th>
+                                        <th className='py-3 font-medium'>Hết hạn</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {userVouchers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className='py-10 text-center text-gray-500'>
+                                                {loadingVouchers ? 'Đang tải voucher...' : 'Chưa có dữ liệu voucher user'}
+                                            </td>
+                                        </tr>
+                                    ) : userVouchers.map((voucher) => (
+                                        <tr key={`${voucher.code}-${voucher.status}`} className='border-b last:border-b-0'>
+                                            <td className='py-4 font-medium text-gray-900'>{voucher.code}</td>
+                                            <td className='py-4 text-gray-600'>{voucher.type}</td>
+                                            <td className='py-4 text-gray-900'>{voucher.type === 'PERCENT' ? `${voucher.value}%` : formatCurrency(voucher.value)}</td>
+                                            <td className='py-4 text-gray-600'>{formatCurrency(voucher.minOrderAmount)}</td>
+                                            <td className='py-4'><span className='bg-green-50 px-3 py-1 text-xs text-green-700'>{voucher.status}</span></td>
+                                            <td className='py-4 text-gray-600'>{formatDate(voucher.endAt)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default Admin;
